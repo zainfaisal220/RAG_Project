@@ -4,7 +4,12 @@ import os
 import requests
 import PyPDF2
 import re
+import logging
 from dotenv import load_dotenv
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
@@ -103,8 +108,11 @@ def call_groq_api(messages):
         response = requests.post(API_URL, headers=headers, json=data)
         response.raise_for_status()
         return response.json()
+    except requests.exceptions.RequestException as e:
+        logger.error(f"API Request Error: {e}")
+        return {"error": f"Network error: {str(e)}"}
     except Exception as e:
-        print(f"API Error: {e}")
+        logger.error(f"API Error: {e}")
         return {"error": str(e)}
 
 def get_natural_response(question, context=""):
@@ -281,11 +289,12 @@ def direct_chat():
 
 if __name__ == '__main__':
     # Initialize RAG system on startup
-    print("Initializing RAG system...")
+    logger.info("Initializing RAG system...")
     success, message = extract_text_from_pdf()
     if success:
-        print("RAG system initialized successfully")
+        logger.info("RAG system initialized successfully")
     else:
-        print(f"Warning: {message}")
+        logger.warning(f"RAG initialization warning: {message}")
     
+    logger.info("Starting Flask application...")
     app.run(debug=True, host='0.0.0.0', port=5000)
