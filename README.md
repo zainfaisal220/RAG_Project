@@ -1,99 +1,169 @@
-# RAG System using LangChain
+# RAG-Based Chatbot - Full Stack Application
 
-This project implements a **Retrieval-Augmented Generation (RAG) System** using **LangChain** and **FAISS** for efficient document retrieval and question-answering.
+A full-stack chatbot application with React frontend and Flask backend, implementing RAG (Retrieval-Augmented Generation) architecture using a data structures knowledge base.
 
 ## Features
-- Load and process PDF documents
-- Chunk text data for optimized retrieval
-- Generate embeddings using Hugging Face models
-- Store and retrieve documents with FAISS vector database
-- Use Hugging Face LLM for question-answering
 
-## Technologies & Libraries Used
-- **Programming Language:** Python
-- **Libraries:**
-  - `langchain-community` (Document processing and retrieval)
-  - `langchain-huggingface` (Hugging Face integrations)
-  - `faiss-cpu` (Vector database for efficient searching)
-  - `sentence-transformers` (Embedding models)
-  - `PyPDFLoader` (PDF document processing)
+- **RAG Architecture**: Retrieval-Augmented Generation using TF-IDF vector similarity
+- **React Frontend**: Modern, responsive UI built with React and Vite
+- **Flask Backend**: RESTful API with RAG implementation
+- **PDF Integration**: Uses "Data structures concepts and programming questions" PDF as knowledge base
+- **Real-time Chat**: Interactive chat interface with message history
+- **Fallback System**: Direct API calls when RAG context is insufficient
 
-## Installation
-Ensure you have Python installed, then install the required dependencies:
+## Project Structure
+
+```
+d:/Chatbot/
+├── app.py                 # Flask backend with RAG implementation
+├── requirements.txt       # Python dependencies
+├── config.py             # Configuration settings
+├── package.json          # React dependencies
+├── vite.config.js        # Vite configuration
+├── index.html            # Main HTML file
+├── src/
+│   ├── main.jsx          # React entry point
+│   ├── App.jsx           # Main React component
+│   ├── App.css           # Component styles
+│   └── index.css         # Global styles
+└── Data structures concepts and programming questions (1).pdf  # Knowledge base
+```
+
+## Setup Instructions
+
+### Backend Setup (Flask)
+
+1. Install Python dependencies:
 ```bash
-pip install langchain-community langchain-huggingface faiss-cpu
+pip install -r requirements.txt
 ```
 
-## Project Setup
-### 1. Load PDF Documents
-```python
-from langchain_community.document_loaders import PyPDFLoader, DirectoryLoader
-DATA = "/path/to/your/pdf/files"
-def load_pdf_files(directory):
-    loader = DirectoryLoader(directory, glob="*.pdf", loader_cls=PyPDFLoader)
-    documents = loader.load()
-    return documents
-
-documents = load_pdf_files(DATA)
-print(f"Loaded {len(documents)} documents")
+2. Run the Flask backend:
+```bash
+python app.py
 ```
 
-### 2. Text Chunking
-```python
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-def create_chunk(extracted_data):
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=550, chunk_overlap=40)
-    return text_splitter.split_documents(extracted_data)
+The backend will start on `http://localhost:5000`
 
-text_chunk = create_chunk(documents)
-print("Chunk length:", len(text_chunk))
+### Frontend Setup (React)
+
+1. Install Node.js dependencies:
+```bash
+npm install
 ```
 
-### 3. Generate Embeddings
-```python
-from langchain_huggingface import HuggingFaceEmbeddings
-def get_embed():
-    return HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-embeding_model = get_embed()
+2. Start the development server:
+```bash
+npm run dev
 ```
 
-### 4. Store Data in FAISS Vector Database
-```python
-from langchain_community.vectorstores import FAISS
-DB_FAISS_PATH = "vectorstore/db_faiss"
-db = FAISS.from_documents(text_chunk, embeding_model)
-db.save_local(DB_FAISS_PATH)
-```
+The frontend will start on `http://localhost:3000`
 
-### 5. Implement Retrieval-Augmented QA System
-```python
-from langchain_huggingface import HuggingFaceEndpoint
-from langchain_core.prompts import PromptTemplate
-from langchain.chains import RetrievalQA
+## API Endpoints
 
-qa_chain = RetrievalQA.from_chain_type(
-    llm=HuggingFaceEndpoint("huggingface_repo"),
-    retriever=db.as_retriever(search_kwargs={"k": 3}),
-    return_source_documents=True
-)
+### Backend API
 
-user_query = input("Write your query: ")
-response = qa_chain.invoke({"query": user_query})
+- `GET /` - Health check
+- `GET /api/health` - System status and RAG initialization status
+- `POST /api/chat` - Main chat endpoint with RAG
+- `POST /api/direct-chat` - Direct chat without RAG (fallback)
 
-print("Result:", response["result"])
-print("Source Document:", response["source_documents"])
-```
+### Frontend Routes
+
+- `/` - Main chat interface
+
+## RAG Implementation
+
+The RAG system works as follows:
+
+1. **Document Processing**: PDF text is extracted and split into chunks
+2. **Vectorization**: TF-IDF vectors are created for each chunk
+3. **Retrieval**: User queries are matched against document chunks using cosine similarity
+4. **Generation**: Relevant context is provided to the LLM for answer generation
+
+## Configuration
+
+### API Configuration
+
+Edit `app.py` to configure:
+- API key and endpoint
+- RAG parameters (chunk size, similarity threshold)
+
+### Frontend Configuration
+
+Edit `vite.config.js` to configure:
+- Development server port
+- API proxy settings
 
 ## Usage
-1. Place your PDF files in the specified directory.
-2. Run the script to process the documents and generate embeddings.
-3. Use the retrieval system to ask questions based on the stored documents.
 
-## Future Enhancements
-- Support for multiple document formats
-- Improved retrieval accuracy with advanced models
-- Deployment as an API or web interface
+1. Start the Flask backend
+2. Start the React frontend
+3. Open `http://localhost:3000` in your browser
+4. Ask questions about data structures and programming concepts
+
+## Dependencies
+
+### Backend Dependencies
+- Flask: Web framework
+- PyPDF2: PDF text extraction
+- scikit-learn: TF-IDF vectorization and similarity calculation
+- requests: API calls
+- flask-cors: CORS handling
+
+### Frontend Dependencies
+- React: UI framework
+- Vite: Build tool and dev server
+- Axios: HTTP client
+
+## Development
+
+### Backend Development
+```bash
+# Run with auto-reload
+python app.py
+
+# Install new dependencies
+pip install <package-name>
+pip freeze > requirements.txt
+```
+
+### Frontend Development
+```bash
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
+```
+
+## Troubleshooting
+
+### Common Issues
+
+1. **PDF not found**: Ensure "Data structures concepts and programming questions (1).pdf" is in the root directory
+2. **API errors**: Check API key configuration in `app.py`
+3. **CORS errors**: Verify flask-cors is installed and configured
+4. **Port conflicts**: Change ports in `app.py` (5000) and `vite.config.js` (3000)
+
+### Debug Mode
+
+Enable debug mode by setting `debug=True` in `app.py`:
+```python
+app.run(debug=True, host='0.0.0.0', port=5000)
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
 
 ## License
-This project is open-source and available under the MIT License.
 
+This project is for educational purposes.
