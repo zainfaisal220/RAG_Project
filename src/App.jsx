@@ -31,7 +31,8 @@ function App() {
     setIsLoading(true)
 
     try {
-      const response = await axios.post('/api/chat', { question: input })
+      const API_BASE_URL = import.meta.env.PROD ? '/api' : '/api'
+      const response = await axios.post(`${API_BASE_URL}/chat`, { question: input })
       const botMessage = { 
         text: response.data.answer, 
         sender: 'bot', 
